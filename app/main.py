@@ -1,13 +1,33 @@
-from pkg_resources import add_activation_listener
-from app import app, get_db
+from fastapi import FastAPI
 from fastapi import  Response, status, Depends, Query, File, UploadFile
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from models import Image
+from app import models 
 from starlette.responses import FileResponse
-from config import settings
-from methods import get_file_from_db, get_file_size, get_files_from_db_limit_offset, save_file_to_uploads, format_filename, \
+from app.config import settings
+from app.methods import get_file_from_db, get_file_size, get_files_from_db_limit_offset, save_file_to_uploads, format_filename, \
                     add_file_to_db, delete_file_from_db, delete_file_from_uploads, update_file_in_db
+from app.database import engine, SessionLocal, Base
+
+
+
+models.Base.metadata.create_all(bind=engine)
+app = FastAPI()
+
+
+### DB
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
 
 
 @app.get("/api/get", tags=["Get files"], status_code=status.HTTP_200_OK)
@@ -23,44 +43,44 @@ async def root(
             ):
 
     # All records by default
-    query = db.query(Image).all()
+    query = db.query(models.Image).all()
     files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     if id and not name and not tag:
-        query = db.query(Image).filter(Image.file_id.in_(id)).all()
+        query = db.query(models.Image).filter(models.Image.file_id.in_(id)).all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     elif id and name and not tag:
-        query = db.query(Image).filter(Image.file_id.in_(id)) \
-                                        .filter(Image.name.in_(name)) \
+        query = db.query(models.Image).filter(models.Image.file_id.in_(id)) \
+                                        .filter(models.Image.name.in_(name)) \
                                         .all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     elif id and name and tag:
-        query = db.query(Image).filter(Image.file_id.in_(id)) \
-                                        .filter(Image.name.in_(name)) \
-                                        .filter(Image.tag.in_(tag)) \
+        query = db.query(models.Image).filter(models.Image.file_id.in_(id)) \
+                                        .filter(models.Image.name.in_(name)) \
+                                        .filter(models.Image.tag.in_(tag)) \
                                         .all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     elif id and not name and tag:
-        query = db.query(Image).filter(Image.file_id.in_(id)) \
-                                        .filter(Image.tag.in_(tag)) \
+        query = db.query(models.Image).filter(models.Image.file_id.in_(id)) \
+                                        .filter(models.Image.tag.in_(tag)) \
                                         .all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     elif not id and name and tag:
-        query = db.query(Image).filter(Image.name.in_(name)) \
-                                        .filter(Image.tag.in_(tag)) \
+        query = db.query(models.Image).filter(models.Image.name.in_(name)) \
+                                        .filter(models.Image.tag.in_(tag)) \
                                         .all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     elif not id and not name and tag:
-        query = db.query(Image).filter(Image.tag.in_(tag)).all()
+        query = db.query(models.Image).filter(models.Image.tag.in_(tag)).all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     elif not id and name and not tag:
-        query = db.query(Image).filter(Image.name.in_(name)).all()
+        query = db.query(models.Image).filter(models.Image.name.in_(name)).all()
         files_in_db = get_files_from_db_limit_offset(db, query, limit, offset)
 
     if len(files_in_db) == 0:

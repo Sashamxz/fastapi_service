@@ -1,7 +1,8 @@
 import os
-from  models import Image
 from datetime import datetime
-from config import settings
+from app.config import settings
+from app.models import Image
+
 
 
 # Get file info from DB
