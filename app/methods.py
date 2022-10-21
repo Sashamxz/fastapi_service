@@ -1,14 +1,12 @@
 import os
-import app.models
-
+from  models import Image
 from datetime import datetime
-
-from config import Config
+from config import settings
 
 
 # Get file info from DB
 def get_file_from_db(db, file_id):
-    return db.query(db_models.Image).filter(db_models.Image.file_id == file_id).first()
+    return db.query(Image).filter(Image.file_id == file_id).first()
 
 # Offset\limit
 def get_files_from_db_limit_offset(db, query, limit : int = None, offset : int = None):
@@ -24,13 +22,13 @@ def get_files_from_db_limit_offset(db, query, limit : int = None, offset : int =
 # Delete file from uploads folder
 def delete_file_from_uploads(file_name):
     try:
-        os.remove(Config.UPLOADED_FILES_PATH + file_name)
+        os.remove(settings.UPLOADED_FILES_PATH + file_name)
     except Exception as e:
         print(e)
 
 # Save file to uploads folder
 async def save_file_to_uploads(file, filename):
-    with open(f'{Config.UPLOADED_FILES_PATH}{filename}', "wb") as uploaded_file:
+    with open(f'{settings.UPLOADED_FILES_PATH}{filename}', "wb") as uploaded_file:
         file_content = await file.read()
         uploaded_file.write(file_content)
         uploaded_file.close()
@@ -50,14 +48,14 @@ def format_filename(file, file_id=None, name=None):
 
 # Get file size
 def get_file_size(filename, path : str = None):
-    file_path = f'{Config.UPLOADED_FILES_PATH}{filename}'
+    file_path = f'{settings.UPLOADED_FILES_PATH}{filename}'
     if path:
         file_path = f'{path}{filename}'
     return os.path.getsize(file_path)
 
 # Add File to DB
 def add_file_to_db(db, **kwargs):
-    new_file = db_models.Image(
+    new_file =  Image(
                                 file_id=kwargs['file_id'],
                                 name=kwargs['full_name'],
                                 tag=kwargs['tag'],
@@ -72,7 +70,7 @@ def add_file_to_db(db, **kwargs):
 
 # Update File in DB
 def update_file_in_db(db, **kwargs):
-    update_file = db.query(db_models.Image).filter(db_models.Image.file_id == kwargs['file_id']).first()
+    update_file = db.query(Image).filter(Image.file_id == kwargs['file_id']).first()
     update_file.name = kwargs['full_name']
     update_file.tag = kwargs['tag']
     update_file.size = kwargs['file_size']
