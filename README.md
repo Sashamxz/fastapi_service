@@ -8,4 +8,4 @@ $ source env/bin/activate
 
 (env)$ pip install -r requirements.txt
 
-(env)$ uvicorn  main.app:app --reload
+(env)$ uvicorn start main.app:app reload
