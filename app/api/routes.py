@@ -1,4 +1,4 @@
-from fastapi import  Response, status, Depends, Query, File, UploadFile
+from fastapi import  Response, status, Depends, Query, File, UploadFile, APIRouter
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from app import models 
@@ -6,13 +6,13 @@ from starlette.responses import FileResponse
 from app.config import settings
 from app.methods import get_file_from_db, get_file_size, get_files_from_db_limit_offset, save_file_to_uploads, format_filename, \
                     add_file_to_db, delete_file_from_db, delete_file_from_uploads, update_file_in_db
-from app.main import app, get_db
+from app.database import get_db
 
 
 
+router = APIRouter(prefix='/file')
 
-
-@app.get("/api/get", tags=["Get files"], status_code=status.HTTP_200_OK)
+@router.get('/get', tags=['Get files'], status_code=status.HTTP_200_OK)
 async def root(
                 # *,
                 response: Response,
@@ -74,7 +74,7 @@ async def root(
 
 
 
-@app.post("/api/upload", tags=["Upload"], status_code=status.HTTP_200_OK)
+@router.post('/upload', tags=['Upload'], status_code=status.HTTP_200_OK)
 async def upload_file(
                         response: Response,
                         file_id: int,
@@ -125,7 +125,7 @@ async def upload_file(
 
 
 
-@app.get("/api/download", tags=["Download"], status_code=status.HTTP_200_OK)
+@router.get('/download', tags=['Download'], status_code=status.HTTP_200_OK)
 async def download_file(
                         response: Response,
                         file_id: int,
@@ -145,7 +145,7 @@ async def download_file(
 
 
 
-@app.delete("/api/delete", tags=["Delete"])
+@router.delete("/delete", tags=["Delete"])
 async def delete_file(
                         response: Response,
                         file_id: int,
